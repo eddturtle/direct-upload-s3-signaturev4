@@ -2,18 +2,19 @@
 
 // Fill These In!
 define('S3_BUCKET', '');
-define('S3_KEY', '');
+define('S3_KEY',    '');
 define('S3_SECRET', '');
-define('S3_REGION', 'eu-central-1'); // S3 region name: http://amzn.to/1FtPG6r
-define('S3_ACL', 'private');         // File permissions: http://amzn.to/18s9Gv7
+define('S3_REGION', '');        // S3 region name: http://amzn.to/1FtPG6r
+define('S3_ACL',    'private'); // File permissions: http://amzn.to/18s9Gv7
 // Stop Here
 
 $algorithm = "AWS4-HMAC-SHA256";
 $service = "s3";
-$date = date('Ymd\THis\Z');
-$shortDate = date('Ymd');
+$date = gmdate('Ymd\THis\Z');
+$shortDate = gmdate('Ymd');
 $requestType = "aws4_request";
 $expires = '86400'; // 24 Hours
+$successStatus = '201';
 
 $scope = [
     S3_KEY,
@@ -25,7 +26,7 @@ $scope = [
 $credentials = implode('/', $scope);
 
 $policy = [
-    'expiration' => date('Y-m-d\TG:i:s\Z', strtotime('+6 hours')),
+    'expiration' => gmdate('Y-m-d\TG:i:s\Z', strtotime('+6 hours')),
     'conditions' => [
         ['bucket' => S3_BUCKET],
         ['acl' => S3_ACL],
@@ -34,7 +35,7 @@ $policy = [
             '$key',
             ''
         ],
-        ['success_action_status' => '201'],
+        ['success_action_status' => $successStatus],
         ['x-amz-credential' => $credentials],
         ['x-amz-algorithm' => $algorithm],
         ['x-amz-date' => $date],
@@ -54,9 +55,10 @@ $signature = hash_hmac('sha256', $base64Policy, $signingKey);
 
 ?>
 
-<!DOCTYPE html>
+<!doctype html>
 <html>
     <head>
+        <meta charset="utf-8">
         <title>Direct Upload Example</title>
         <style>
             .progress {
@@ -67,32 +69,28 @@ $signature = hash_hmac('sha256', $base64Policy, $signingKey);
                 border-radius: 10px;
                 overflow: hidden;
             }
-
             .bar {
                 position: absolute;
                 top: 0; left: 0;
                 width: 0; height: 15px;
                 background: #85C220;
             }
-            .bar.red {
-                background: tomato;
-            }
+            .bar.red { background: tomato; }
         </style>
     </head>
     <body>
 
         <!-- Direct Upload to S3 -->
         <!-- URL prefix (//) means either HTTP or HTTPS (depending on which is being currently used) -->
-        <form action="<?php echo "http://" . S3_BUCKET . ".s3." . S3_REGION . ".amazonaws.com/"; ?>"
+        <form action="//<?php echo S3_BUCKET . "." . $service . "-" . S3_REGION; ?>.amazonaws.com"
               method="POST"
               enctype="multipart/form-data"
               class="direct-upload">
 
-            <!-- We'll specify these variables with PHP -->
             <!-- Note: Order of these is Important -->
             <input type="hidden" name="key" value="${filename}">
             <input type="hidden" name="acl" value="<?php echo S3_ACL; ?>">
-            <input type="hidden" name="success_action_status" value="201">
+            <input type="hidden" name="success_action_status" value="<?php echo $successStatus; ?>">
             <input type="hidden" name="policy" value="<?php echo $base64Policy; ?>">
 
             <input type="hidden" name="X-amz-algorithm" value="<?php echo $algorithm; ?>">
@@ -101,21 +99,18 @@ $signature = hash_hmac('sha256', $base64Policy, $signingKey);
             <input type="hidden" name="X-amz-expires" value="<?php echo $expires; ?>">
             <input type="hidden" name="X-amz-signature" value="<?php echo $signature; ?>">
 
-            <input type="file" name="file"/>
+            <input type="file" name="file">
 
             <!-- Progress Bar to show upload completion percentage -->
-            <div class="progress">
-                <div class="bar"></div>
-            </div>
+            <div class="progress"><div class="bar"></div></div>
+
         </form>
 
         <!-- Used to Track Upload within our App -->
         <form action="server.php" method="POST">
-            <input type="hidden" name="upload_original_name" id="upload_original_name"/>
-
-            <label for="upload_custom_name">Name:</label><br/>
-            <input type="text" name="upload_custom_name" id="upload_custom_name"/><br/>
-
+            <input type="hidden" name="upload_original_name" id="upload_original_name">
+            <label for="upload_custom_name">Name:</label><br />
+            <input type="text" name="upload_custom_name" id="upload_custom_name"><br />
             <input type="submit" value="Save"/>
         </form>
 
