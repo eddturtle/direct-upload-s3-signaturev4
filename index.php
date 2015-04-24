@@ -30,11 +30,8 @@ $policy = [
     'conditions' => [
         ['bucket' => S3_BUCKET],
         ['acl' => S3_ACL],
-        [
-            'starts-with',
-            '$key',
-            ''
-        ],
+        ['starts-with', '$key', ''],
+        ['starts-with', '$Content-Type', ''],
         ['success_action_status' => $successStatus],
         ['x-amz-credential' => $credentials],
         ['x-amz-algorithm' => $algorithm],
@@ -88,7 +85,9 @@ $signature = hash_hmac('sha256', $base64Policy, $signingKey);
               class="direct-upload">
 
             <!-- Note: Order of these is Important -->
+            <!-- Key and Content-Type can be filled in with JS -->
             <input type="hidden" name="key" value="${filename}">
+            <input type="hidden" name="Content-Type" value="">
             <input type="hidden" name="acl" value="<?php echo S3_ACL; ?>">
             <input type="hidden" name="success_action_status" value="<?php echo $successStatus; ?>">
             <input type="hidden" name="policy" value="<?php echo $base64Policy; ?>">
@@ -126,6 +125,10 @@ $signature = hash_hmac('sha256', $base64Policy, $signingKey);
                         type: 'POST',
                         datatype: 'xml',
                         add: function (event, data) {
+
+                            // Give the file being uploaded it's current content-type
+                            // It doesn't retain it otherwise.
+                            form.find('input[name="Content-Type"]').val( data.originalFiles[0].type );
 
                             // Message on unLoad.
                             // Shows 'Are you sure you want to leave message', just to confirm.
