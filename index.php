@@ -60,8 +60,7 @@ $signature = hash_hmac('sha256', $base64Policy, $signingKey);
         <style>
             .progress {
                 position: relative;
-                width: 100%;
-                height: 15px;
+                width: 100%; height: 15px;
                 background: #C7DA9F;
                 border-radius: 10px;
                 overflow: hidden;
