@@ -113,7 +113,7 @@ $signature = hash_hmac('sha256', $base64Policy, $signingKey);
             <input type="submit" value="Save"/>
         </form>
 
-        <script src="//code.jquery.com/jquery-2.1.3.min.js"></script>
+        <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
         <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
         <script src="fileupload/jquery.fileupload.js"></script>
         <script>
