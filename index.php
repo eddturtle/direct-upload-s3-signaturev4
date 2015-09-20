@@ -1,54 +1,87 @@
 <?php
 
-// Fill These In!
-define('S3_BUCKET', '');
-define('S3_KEY',    '');
-define('S3_SECRET', '');
-define('S3_REGION', '');        // S3 region name: http://amzn.to/1FtPG6r
-define('S3_ACL',    'private'); // File permissions: http://amzn.to/18s9Gv7
-// Stop Here
 
-$algorithm = "AWS4-HMAC-SHA256";
-$service = "s3";
-$date = gmdate('Ymd\THis\Z');
-$shortDate = gmdate('Ymd');
-$requestType = "aws4_request";
-$expires = '86400'; // 24 Hours
-$successStatus = '201';
+// TODO Enter your AWS credentials
+define('AWS_ACCESS_KEY', '');
+define('AWS_SECRET', '');
 
-$scope = [
-    S3_KEY,
-    $shortDate,
-    S3_REGION,
-    $service,
-    $requestType
-];
-$credentials = implode('/', $scope);
 
-$policy = [
-    'expiration' => gmdate('Y-m-d\TG:i:s\Z', strtotime('+6 hours')),
-    'conditions' => [
-        ['bucket' => S3_BUCKET],
-        ['acl' => S3_ACL],
-        ['starts-with', '$key', ''],
-        ['starts-with', '$Content-Type', ''],
-        ['success_action_status' => $successStatus],
-        ['x-amz-credential' => $credentials],
-        ['x-amz-algorithm' => $algorithm],
-        ['x-amz-date' => $date],
-        ['x-amz-expires' => $expires],
-    ]
-];
-$base64Policy = base64_encode(json_encode($policy));
+/**
+ * Get all the necessary details to directly upload a private file to S3
+ * asynchronously with JavaScript.
+ *
+ * @param string $s3Bucket your bucket's name on s3.
+ * @param string $region   the bucket's location, see here for details: http://amzn.to/1FtPG6r
+ * @param string $acl      the visibility/permissions of your file, see details: http://amzn.to/18s9Gv7
+ *
+ * @return array ['url', 'inputs'] the forms url to s3 and any inputs the form will need.
+ */
+function getS3Details($s3Bucket, $region, $acl = 'private') {
 
-// Signing Keys
-$dateKey = hash_hmac('sha256', $shortDate, 'AWS4' . S3_SECRET, true);
-$dateRegionKey = hash_hmac('sha256', S3_REGION, $dateKey, true);
-$dateRegionServiceKey = hash_hmac('sha256', $service, $dateRegionKey, true);
-$signingKey = hash_hmac('sha256', $requestType, $dateRegionServiceKey, true);
+    // Options and Settings
+    $algorithm = "AWS4-HMAC-SHA256";
+    $service = "s3";
+    $date = gmdate('Ymd\THis\Z');
+    $shortDate = gmdate('Ymd');
+    $requestType = "aws4_request";
+    $expires = '86400'; // 24 Hours
+    $successStatus = '201';
+    $url = '//' . $s3Bucket . '.' . $service . '-' . $region . '.amazonaws.com';
 
-// Signature
-$signature = hash_hmac('sha256', $base64Policy, $signingKey);
+    // Step 1: Generate the Scope
+    $scope = [
+        AWS_ACCESS_KEY,
+        $shortDate,
+        $region,
+        $service,
+        $requestType
+    ];
+    $credentials = implode('/', $scope);
+
+    // Step 2: Making a Base64 Policy
+    $policy = [
+        'expiration' => gmdate('Y-m-d\TG:i:s\Z', strtotime('+6 hours')),
+        'conditions' => [
+            ['bucket' => $s3Bucket],
+            ['acl' => $acl],
+            ['starts-with', '$key', ''],
+            ['starts-with', '$Content-Type', ''],
+            ['success_action_status' => $successStatus],
+            ['x-amz-credential' => $credentials],
+            ['x-amz-algorithm' => $algorithm],
+            ['x-amz-date' => $date],
+            ['x-amz-expires' => $expires],
+        ]
+    ];
+    $base64Policy = base64_encode(json_encode($policy));
+
+    // Step 3: Signing your Request (Making a Signature)
+    $dateKey = hash_hmac('sha256', $shortDate, 'AWS4' . AWS_SECRET, true);
+    $dateRegionKey = hash_hmac('sha256', $region, $dateKey, true);
+    $dateRegionServiceKey = hash_hmac('sha256', $service, $dateRegionKey, true);
+    $signingKey = hash_hmac('sha256', $requestType, $dateRegionServiceKey, true);
+
+    $signature = hash_hmac('sha256', $base64Policy, $signingKey);
+
+    // Step 4: Build form inputs
+    // This is the data that will get sent with the form to S3
+    $inputs = [
+        'Content-Type' => '',
+        'acl' => $acl,
+        'success_action_status' => $successStatus,
+        'policy' => $base64Policy,
+        'X-amz-credential' => $credentials,
+        'X-amz-algorithm' => $algorithm,
+        'X-amz-date' => $date,
+        'X-amz-expires' => $expires,
+        'X-amz-signature' => $signature
+    ];
+
+    return compact('url', 'inputs');
+}
+
+// TODO Enter your bucket and region details
+$s3FormDetails = getS3Details('', '');
 
 ?>
 
@@ -58,6 +91,7 @@ $signature = hash_hmac('sha256', $base64Policy, $signingKey);
         <meta charset="utf-8">
         <title>Direct Upload Example</title>
         <style>
+            form { width: 600px; margin: 0 auto; }
             .progress {
                 position: relative;
                 width: 100%; height: 15px;
@@ -76,27 +110,18 @@ $signature = hash_hmac('sha256', $base64Policy, $signingKey);
     </head>
     <body>
 
-        <!-- Direct Upload to S3 -->
-        <!-- URL prefix (//) means either HTTP or HTTPS (depending on which is being currently used) -->
-        <form action="//<?php echo S3_BUCKET . "." . $service . "-" . S3_REGION; ?>.amazonaws.com"
+        <!-- Direct Upload to S3 Form -->
+        <form action="<?php echo $s3FormDetails['url']; ?>"
               method="POST"
               enctype="multipart/form-data"
               class="direct-upload">
 
-            <!-- Note: Order of these is Important -->
-            <!-- Key and Content-Type can be filled in with JS -->
+            <?php foreach ($s3FormDetails['inputs'] as $name => $value) { ?>
+                <input type="hidden" name="<?php echo $name; ?>" value="<?php echo $value; ?>">
+            <?php } ?>
+
+            <!-- Key is the file's name on S3 and can be filled in with JS -->
             <input type="hidden" name="key" value="${filename}">
-            <input type="hidden" name="Content-Type" value="">
-            <input type="hidden" name="acl" value="<?php echo S3_ACL; ?>">
-            <input type="hidden" name="success_action_status" value="<?php echo $successStatus; ?>">
-            <input type="hidden" name="policy" value="<?php echo $base64Policy; ?>">
-
-            <input type="hidden" name="X-amz-algorithm" value="<?php echo $algorithm; ?>">
-            <input type="hidden" name="X-amz-credential" value="<?php echo $credentials; ?>">
-            <input type="hidden" name="X-amz-date" value="<?php echo $date; ?>">
-            <input type="hidden" name="X-amz-expires" value="<?php echo $expires; ?>">
-            <input type="hidden" name="X-amz-signature" value="<?php echo $signature; ?>">
-
             <input type="file" name="file">
 
             <!-- Progress Bar to show upload completion percentage -->
