@@ -139,75 +139,84 @@ $s3FormDetails = getS3Details('', '');
 
             </form>
 
-            <!-- This will be filled with our results -->
-            <form>
+            <!-- This area will be filled with our results -->
+            <div>
                 <label for="upload_original_name">Original Filename:</label>
                 <input type="text" name="upload_original_name" id="upload_original_name">
 
                 <label for="upload_custom_name">Filename on S3:</label>
                 <input type="text" name="upload_custom_name" id="upload_custom_name">
 
+                <label for="size">File Size:</label>
+                <input type="text" name="size" id="size">
+
                 <label for="url">URL:</label>
                 <input type="text" name="url" id="url">
 
                 <label for="etag">ETag:</label>
                 <input type="text" name="etag" id="etag">
-
-                <label for="size">File Size:</label>
-                <input type="text" name="size" id="size">
-            </form>
+            </div>
 
         </div>
 
-        <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
-        <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+        <!-- Start of the JavaScript -->
+        <!-- Load jQuery & jQuery UI (Needed for the FileUpload Plugin) -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+
+        <!-- Load the FileUpload Plugin (more info @ https://github.com/blueimp/jQuery-File-Upload) -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-file-upload/9.5.7/jquery.fileupload.js"></script>
+
         <script>
             $(document).ready(function () {
-                $('.direct-upload').each(function () {
-                    var form = $(this);
-                    form.fileupload({
-                        url: form.attr('action'),
-                        type: 'POST',
-                        datatype: 'xml',
-                        add: function (event, data) {
 
-                            // Give the file being uploaded it's current content-type
-                            // It doesn't retain it otherwise.
-                            form.find('input[name="Content-Type"]').val( data.originalFiles[0].type );
+                // Assigned to variable for later use.
+                var form = $('.direct-upload');
 
-                            // Message on unLoad.
-                            // Shows 'Are you sure you want to leave message', just to confirm.
-                            window.onbeforeunload = function () {
-                                return 'You have unsaved changes.';
-                            };
+                form.fileupload({
+                    url: form.attr('action'),
+                    type: form.attr('method'),
+                    datatype: 'xml',
+                    add: function (event, data) {
 
-                            // Actually submit to form, sending the data.
-                            data.submit();
-                            $('.progress').slideDown('fast');
-                        },
-                        progress: function (e, data) {
-                            // This is what makes everything really cool, thanks to that callback
-                            // you can now update the progress bar based on the upload progress.
-                            var percent = Math.round((data.loaded / data.total) * 100);
-                            $('.bar').css('width', percent + '%');
-                        },
-                        fail: function (e, data) {
-                            // Remove the 'unsaved changes' message.
-                            window.onbeforeunload = null;
-                            $('.bar').css('width', '100%').addClass('red');
-                        },
-                        done: function (event, data) {
-                            window.onbeforeunload = null;
-                            // Fill the name field with the file's name.
-                            console.log();
-                            $('#upload_original_name').val(data.originalFiles[0].name);
-                            $('#upload_custom_name').val(data.originalFiles[0].name);
-                            $('#url').val(data.result.documentElement.children[0].innerHTML);
-                            $('#etag').val(data.result.documentElement.children[3].innerHTML);
-                            $('#size').val(data.originalFiles[0].size);
-                        }
-                    });
+                        // Give the file being uploaded it's current content-type
+                        // It doesn't retain it otherwise.
+                        form.find('input[name="Content-Type"]').val(data.originalFiles[0].type);
+
+                        // Message on unLoad.
+                        // Shows 'Are you sure you want to leave message', just to confirm.
+                        window.onbeforeunload = function () {
+                            return 'You have unsaved changes.';
+                        };
+
+                        // Actually submit to form, sending the data.
+                        data.submit();
+                        $('.progress').slideDown('fast');
+                    },
+                    progress: function (e, data) {
+                        // This is what makes everything really cool, thanks to that callback
+                        // you can now update the progress bar based on the upload progress.
+                        var percent = Math.round((data.loaded / data.total) * 100);
+                        $('.bar').css('width', percent + '%');
+                    },
+                    fail: function (e, data) {
+                        // Remove the 'unsaved changes' message.
+                        window.onbeforeunload = null;
+                        $('.bar').css('width', '100%').addClass('red');
+                    },
+                    done: function (event, data) {
+                        window.onbeforeunload = null;
+
+                        // Fill the name field with the file's name.
+                        var original = data.originalFiles[0];
+                        $('#upload_original_name').val(original.name);
+                        $('#upload_custom_name').val(original.name);
+                        $('#size').val(original.size);
+
+                        var s3Result = data.result.documentElement.children;
+                        $('#url').val(s3Result[0].innerHTML);
+                        $('#etag').val(s3Result[3].innerHTML);
+                    }
                 });
             });
         </script>
