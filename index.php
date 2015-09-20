@@ -91,13 +91,19 @@ $s3FormDetails = getS3Details('', '');
         <meta charset="utf-8">
         <title>Direct Upload Example</title>
         <style>
-            form { width: 600px; margin: 0 auto; }
+            body { font-family: sans-serif; }
+            .container { width: 600px; margin: 50px auto; }
+            form { margin-bottom: 50px; }
+            input[type="text"] { width: 100%; }
+            label { display: block; margin-top: 10px; }
             .progress {
+                display: none;
                 position: relative;
                 width: 100%; height: 15px;
                 background: #C7DA9F;
                 border-radius: 10px;
                 overflow: hidden;
+                margin-top: 30px;
             }
             .bar {
                 position: absolute;
@@ -110,36 +116,52 @@ $s3FormDetails = getS3Details('', '');
     </head>
     <body>
 
-        <!-- Direct Upload to S3 Form -->
-        <form action="<?php echo $s3FormDetails['url']; ?>"
-              method="POST"
-              enctype="multipart/form-data"
-              class="direct-upload">
+        <div class="container">
 
-            <?php foreach ($s3FormDetails['inputs'] as $name => $value) { ?>
-                <input type="hidden" name="<?php echo $name; ?>" value="<?php echo $value; ?>">
-            <?php } ?>
+            <h1>Direct Upload</h1>
 
-            <!-- Key is the file's name on S3 and can be filled in with JS -->
-            <input type="hidden" name="key" value="${filename}">
-            <input type="file" name="file">
+            <!-- Direct Upload to S3 Form -->
+            <form action="<?php echo $s3FormDetails['url']; ?>"
+                  method="POST"
+                  enctype="multipart/form-data"
+                  class="direct-upload">
 
-            <!-- Progress Bar to show upload completion percentage -->
-            <div class="progress"><div class="bar"></div></div>
+                <?php foreach ($s3FormDetails['inputs'] as $name => $value) { ?>
+                    <input type="hidden" name="<?php echo $name; ?>" value="<?php echo $value; ?>">
+                <?php } ?>
 
-        </form>
+                <!-- Key is the file's name on S3 and can be filled in with JS -->
+                <input type="hidden" name="key" value="${filename}">
+                <input type="file" name="file">
 
-        <!-- Used to Track Upload within our App -->
-        <form action="server.php" method="POST">
-            <input type="hidden" name="upload_original_name" id="upload_original_name">
-            <label for="upload_custom_name">Name:</label><br />
-            <input type="text" name="upload_custom_name" id="upload_custom_name"><br />
-            <input type="submit" value="Save"/>
-        </form>
+                <!-- Progress Bar to show upload completion percentage -->
+                <div class="progress"><div class="bar"></div></div>
+
+            </form>
+
+            <!-- This will be filled with our results -->
+            <form>
+                <label for="upload_original_name">Original Filename:</label>
+                <input type="text" name="upload_original_name" id="upload_original_name">
+
+                <label for="upload_custom_name">Filename on S3:</label>
+                <input type="text" name="upload_custom_name" id="upload_custom_name">
+
+                <label for="url">URL:</label>
+                <input type="text" name="url" id="url">
+
+                <label for="etag">ETag:</label>
+                <input type="text" name="etag" id="etag">
+
+                <label for="size">File Size:</label>
+                <input type="text" name="size" id="size">
+            </form>
+
+        </div>
 
         <script src="//code.jquery.com/jquery-2.1.4.min.js"></script>
         <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-        <script src="fileupload/jquery.fileupload.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-file-upload/9.5.7/jquery.fileupload.js"></script>
         <script>
             $(document).ready(function () {
                 $('.direct-upload').each(function () {
@@ -162,6 +184,7 @@ $s3FormDetails = getS3Details('', '');
 
                             // Actually submit to form, sending the data.
                             data.submit();
+                            $('.progress').slideDown('fast');
                         },
                         progress: function (e, data) {
                             // This is what makes everything really cool, thanks to that callback
@@ -177,8 +200,12 @@ $s3FormDetails = getS3Details('', '');
                         done: function (event, data) {
                             window.onbeforeunload = null;
                             // Fill the name field with the file's name.
+                            console.log();
                             $('#upload_original_name').val(data.originalFiles[0].name);
                             $('#upload_custom_name').val(data.originalFiles[0].name);
+                            $('#url').val(data.result.documentElement.children[0].innerHTML);
+                            $('#etag').val(data.result.documentElement.children[3].innerHTML);
+                            $('#size').val(data.originalFiles[0].size);
                         }
                     });
                 });
