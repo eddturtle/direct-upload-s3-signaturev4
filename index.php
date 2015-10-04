@@ -5,7 +5,7 @@
 define('AWS_ACCESS_KEY', '');
 define('AWS_SECRET', '');
 
-// TODO Enter your bucket and region details
+// TODO Enter your bucket and region details (see details below)
 $s3FormDetails = getS3Details('', '');
 
 
@@ -109,16 +109,16 @@ function getS3Details($s3Bucket, $region, $acl = 'private') {
                     <input type="hidden" name="<?php echo $name; ?>" value="<?php echo $value; ?>">
                 <?php } ?>
 
-                <!-- Key is the file's name on S3 and can be filled in with JS -->
-                <input type="hidden" name="key" value="${filename}">
+                <!-- Key is the file's name on S3 and will be filled in with JS -->
+                <input type="hidden" name="key" value="">
                 <input type="file" name="file" multiple>
 
-                <!-- Progress Bar to show upload completion percentage -->
+                <!-- Progress Bars to show upload completion percentage -->
                 <div class="progress-bar-area"></div>
 
             </form>
 
-            <!-- This area will be filled with our results -->
+            <!-- This area will be filled with our results (mainly for debugging) -->
             <div>
                 <h3>Files</h3>
                 <textarea id="uploaded"></textarea>
@@ -151,23 +151,23 @@ function getS3Details($s3Bucket, $region, $acl = 'private') {
                     datatype: 'xml',
                     add: function (event, data) {
 
-                        // Give the file being uploaded it's current content-type (It doesn't retain it otherwise.)
-                        // And give it a unique name (so it won't overwrite anything already on s3).
+                        // Give the file which is being uploaded it's current content-type (It doesn't retain it otherwise)
+                        // and give it a unique name (so it won't overwrite anything already on s3).
                         var file = data.files[0];
                         var filename = Date.now() + '.' + file.name.split('.').pop();
                         form.find('input[name="Content-Type"]').val(file.type);
                         form.find('input[name="key"]').val((folders.length ? folders.join('/') + '/' : '') + filename);
 
                         // Show warning message if your leaving the page during an upload.
-                        // Shows 'Are you sure you want to leave message', just to confirm.
                         window.onbeforeunload = function () {
                             return 'You have unsaved changes.';
                         };
 
-                        // Actually submit to form, sending the data.
+                        // Actually submit to form to S3.
                         data.submit();
 
                         // Show the progress bar
+                        // Uses the file size as a unique identifier
                         var bar = $('<div class="progress" data-mod="'+file.size+'"><div class="bar"></div></div>');
                         $('.progress-bar-area').append(bar);
                         bar.slideDown('fast');
