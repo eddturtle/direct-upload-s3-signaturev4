@@ -128,7 +128,7 @@ function getS3Details($s3Bucket, $region, $acl = 'private') {
 
         <!-- Start of the JavaScript -->
         <!-- Load jQuery & jQuery UI (Needed for the FileUpload Plugin) -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.0/jquery.min.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
 
         <!-- Load the FileUpload Plugin (more info @ https://github.com/blueimp/jQuery-File-Upload) -->
