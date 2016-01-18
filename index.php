@@ -1,20 +1,19 @@
 <?php
 
-
 // TODO Enter your AWS credentials
+// Note: these can be set as environment variables (with the same name) or constants.
 define('AWS_ACCESS_KEY', '');
 define('AWS_SECRET', '');
 
 // TODO Enter your bucket and region details (see details below)
 $s3FormDetails = getS3Details('', '');
 
-
 /**
  * Get all the necessary details to directly upload a private file to S3
- * asynchronously with JavaScript.
+ * asynchronously with JavaScript using the Signature V4.
  *
  * @param string $s3Bucket your bucket's name on s3.
- * @param string $region   the bucket's location, see here for details: http://amzn.to/1FtPG6r
+ * @param string $region   the bucket's location/region, see here for details: http://amzn.to/1FtPG6r
  * @param string $acl      the visibility/permissions of your file, see details: http://amzn.to/18s9Gv7
  *
  * @return array ['url', 'inputs'] the forms url to s3 and any inputs the form will need.
@@ -22,18 +21,21 @@ $s3FormDetails = getS3Details('', '');
 function getS3Details($s3Bucket, $region, $acl = 'private') {
 
     // Options and Settings
+    $awsKey = (!empty(getenv('AWS_ACCESS_KEY')) ? getenv('AWS_ACCESS_KEY') : AWS_ACCESS_KEY);
+    $awsSecret = (!empty(getenv('AWS_SECRET')) ? getenv('AWS_SECRET') : AWS_SECRET);
+
     $algorithm = "AWS4-HMAC-SHA256";
     $service = "s3";
-    $date = gmdate('Ymd\THis\Z');
-    $shortDate = gmdate('Ymd');
+    $date = gmdate("Ymd\THis\Z");
+    $shortDate = gmdate("Ymd");
     $requestType = "aws4_request";
-    $expires = '86400'; // 24 Hours
-    $successStatus = '201';
-    $url = '//' . $s3Bucket . '.' . $service . '-' . $region . '.amazonaws.com';
+    $expires = "86400"; // 24 Hours
+    $successStatus = "201";
+    $url = "//{$s3Bucket}.{$service}-{$region}.amazonaws.com";
 
     // Step 1: Generate the Scope
     $scope = [
-        AWS_ACCESS_KEY,
+        $awsKey,
         $shortDate,
         $region,
         $service,
@@ -59,7 +61,7 @@ function getS3Details($s3Bucket, $region, $acl = 'private') {
     $base64Policy = base64_encode(json_encode($policy));
 
     // Step 3: Signing your Request (Making a Signature)
-    $dateKey = hash_hmac('sha256', $shortDate, 'AWS4' . AWS_SECRET, true);
+    $dateKey = hash_hmac('sha256', $shortDate, 'AWS4' . $awsSecret, true);
     $dateRegionKey = hash_hmac('sha256', $region, $dateKey, true);
     $dateRegionServiceKey = hash_hmac('sha256', $service, $dateRegionKey, true);
     $signingKey = hash_hmac('sha256', $requestType, $dateRegionServiceKey, true);
@@ -96,7 +98,6 @@ function getS3Details($s3Bucket, $region, $acl = 'private') {
     <body>
 
         <div class="container">
-
             <h1>Direct Upload</h1>
 
             <!-- Direct Upload to S3 Form -->
@@ -151,17 +152,17 @@ function getS3Details($s3Bucket, $region, $acl = 'private') {
                     datatype: 'xml',
                     add: function (event, data) {
 
+                        // Show warning message if your leaving the page during an upload.
+                        window.onbeforeunload = function () {
+                            return 'You have unsaved changes.';
+                        };
+
                         // Give the file which is being uploaded it's current content-type (It doesn't retain it otherwise)
                         // and give it a unique name (so it won't overwrite anything already on s3).
                         var file = data.files[0];
                         var filename = Date.now() + '.' + file.name.split('.').pop();
                         form.find('input[name="Content-Type"]').val(file.type);
                         form.find('input[name="key"]').val((folders.length ? folders.join('/') + '/' : '') + filename);
-
-                        // Show warning message if your leaving the page during an upload.
-                        window.onbeforeunload = function () {
-                            return 'You have unsaved changes.';
-                        };
 
                         // Actually submit to form to S3.
                         data.submit();
@@ -188,7 +189,7 @@ function getS3Details($s3Bucket, $region, $acl = 'private') {
 
                         // Upload Complete, show information about the upload in a textarea
                         // from here you can do what you want as the file is on S3
-                        // e.g. save reference to your server / log it, etc.
+                        // e.g. save reference to your server using another ajax call or log it, etc.
                         var original = data.files[0];
                         var s3Result = data.result.documentElement.children;
                         filesUploaded.push({
