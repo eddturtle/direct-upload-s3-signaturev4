@@ -1,0 +1,5 @@
+{
+    "require": {
+        "eddturtle/direct-upload": "^1.0"
+    }
+}
