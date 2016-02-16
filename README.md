@@ -6,6 +6,6 @@ For more information or any questions, go to:
 
 https://github.com/eddturtle/direct-upload
 
-or 
+![alt text](https://www.designedbyaturtle.co.uk/wp-content/uploads/2015/03/Screencast-from-03-12-15-20_17_49.gif "Logo Title Text 1")
 
-http://www.designedbyaturtle.co.uk/2015/direct-upload-to-s3-using-aws-signature-v4-php/
+
