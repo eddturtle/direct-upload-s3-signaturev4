@@ -2,10 +2,7 @@
 
 This is an example repository, showing how the [direct upload package](https://github.com/eddturtle/direct-upload) can be used.
 
-For more information or any questions, go to:
+####[* See it in Action Here *](https://www.designedbyaturtle.co.uk/wp-content/uploads/2015/03/Screencast-from-03-12-15-20_17_49.gif)
 
-https://github.com/eddturtle/direct-upload
-
-![alt text](https://www.designedbyaturtle.co.uk/wp-content/uploads/2015/03/Screencast-from-03-12-15-20_17_49.gif "Logo Title Text 1")
-
+For more information or any questions, go to: https://github.com/eddturtle/direct-upload
 
