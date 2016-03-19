@@ -2,10 +2,7 @@
 
 This is an example repository, showing how the [direct upload package](https://github.com/eddturtle/direct-upload) can be used.
 
-For more information or any questions, go to:
+####[* See it in Action Here *](https://www.designedbyaturtle.co.uk/wp-content/uploads/2015/03/Screencast-from-03-12-15-20_17_49.gif)
 
-https://github.com/eddturtle/direct-upload
+For more information or any questions, go to: https://github.com/eddturtle/direct-upload
 
-or 
-
-http://www.designedbyaturtle.co.uk/2015/direct-upload-to-s3-using-aws-signature-v4-php/
