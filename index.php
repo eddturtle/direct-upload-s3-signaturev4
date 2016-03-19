@@ -2,6 +2,8 @@
 
 require_once "vendor/autoload.php";
 
+// TODO fill your details in here!
+
 $uploader = new \EddTurtle\DirectUpload\Signature(
     "YOUR_S3_KEY",
     "YOUR_S3_SECRET",
@@ -31,9 +33,7 @@ $uploader = new \EddTurtle\DirectUpload\Signature(
                   class="direct-upload">
 
                 <?php echo $uploader->getFormInputsAsHtml(); ?>
-
-                <!-- Key is the file's name on S3 and will be filled in with JS -->
-                <input type="hidden" name="key" value="">
+                
                 <input type="file" name="file" multiple>
 
                 <!-- Progress Bars to show upload completion percentage -->
