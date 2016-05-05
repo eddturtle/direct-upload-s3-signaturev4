@@ -1,10 +1,13 @@
 <?php
 
-require_once "vendor/autoload.php";
+use EddTurtle\DirectUpload\Signature;
 
-// TODO fill your details in here!
+// Require Composer's autoloader
+require_once __DIR__ . "/vendor/autoload.php";
 
-$uploader = new \EddTurtle\DirectUpload\Signature(
+// TODO fill your S3 details here!
+
+$upload = new Signature(
     "YOUR_S3_KEY",
     "YOUR_S3_SECRET",
     "YOUR_S3_BUCKET",
@@ -27,12 +30,12 @@ $uploader = new \EddTurtle\DirectUpload\Signature(
             <h1>Direct Upload</h1>
 
             <!-- Direct Upload to S3 Form -->
-            <form action="<?php echo $uploader->getFormUrl(); ?>"
+            <form action="<?php echo $upload->getFormUrl(); ?>"
                   method="POST"
                   enctype="multipart/form-data"
                   class="direct-upload">
 
-                <?php echo $uploader->getFormInputsAsHtml(); ?>
+                <?php echo $upload->getFormInputsAsHtml(); ?>
                 
                 <input type="file" name="file" multiple>
 
