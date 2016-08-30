@@ -121,7 +121,7 @@ $upload = new Signature(
                             "original_name": original.name,
                             "s3_name": s3Result[2].innerHTML,
                             "size": original.size,
-                            "url": s3Result[0].innerHTML
+                            "url": s3Result[0].innerHTML.replace("%2F", "/")
                         });
                         $('#uploaded').html(JSON.stringify(filesUploaded, null, 2));
                     }
