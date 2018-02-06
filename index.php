@@ -116,12 +116,12 @@ $upload = new Signature(
                         // from here you can do what you want as the file is on S3
                         // e.g. save reference to your server using another ajax call or log it, etc.
                         var original = data.files[0];
-                        var s3Result = data.result.documentElement.children;
+                        var s3Result = data.result.documentElement.childNodes;
                         filesUploaded.push({
                             "original_name": original.name,
-                            "s3_name": s3Result[2].innerHTML,
+                            "s3_name": s3Result[2].textContent,
                             "size": original.size,
-                            "url": s3Result[0].innerHTML.replace("%2F", "/")
+                            "url": s3Result[0].textContent.replace("%2F", "/")
                         });
                         $('#uploaded').html(JSON.stringify(filesUploaded, null, 2));
                     }
