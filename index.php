@@ -87,6 +87,7 @@ $upload = new Signature(
                         var file = data.files[0];
                         var filename = Date.now() + '.' + file.name.split('.').pop();
                         form.find('input[name="Content-Type"]').val(file.type);
+                        form.find('input[name="Content-Length"]').val(file.size);
                         form.find('input[name="key"]').val((folders.length ? folders.join('/') + '/' : '') + filename);
 
                         // Actually submit to form to S3.
