@@ -1,18 +1,13 @@
 <?php
 
-use EddTurtle\DirectUpload\Signature;
+use EddTurtle\DirectUpload\SignatureAuto;
 
 // Require Composer's autoloader
 require_once __DIR__ . "/vendor/autoload.php";
 
-// TODO fill your S3 details here!
+// Make sure your AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY env vars are filled in!
 
-$upload = new Signature(
-    "YOUR_S3_KEY",
-    "YOUR_S3_SECRET",
-    "YOUR_S3_BUCKET",
-    "eu-west-1"
-);
+$uploader = new SignatureAuto("YOUR_S3_BUCKET", "eu-west-1");
 
 ?>
 
@@ -21,7 +16,7 @@ $upload = new Signature(
     <head>
         <meta charset="utf-8">
         <title>Direct Upload Example</title>
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/7.0.0/normalize.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
         <link rel="stylesheet" href="style.css">
     </head>
     <body>
@@ -30,12 +25,12 @@ $upload = new Signature(
             <h1>Direct Upload</h1>
 
             <!-- Direct Upload to S3 Form -->
-            <form action="<?php echo $upload->getFormUrl(); ?>"
+            <form action="<?php echo $uploader->getFormUrl(); ?>"
                   method="POST"
                   enctype="multipart/form-data"
                   class="direct-upload">
 
-                <?php echo $upload->getFormInputsAsHtml(); ?>
+                <?php echo $uploader->getFormInputsAsHtml(); ?>
                 
                 <input type="file" name="file" multiple>
 
@@ -54,11 +49,11 @@ $upload = new Signature(
 
         <!-- Start of the JavaScript -->
         <!-- Load jQuery & jQuery UI (Needed for the FileUpload Plugin) -->
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
 
         <!-- Load the FileUpload Plugin (more info @ https://github.com/blueimp/jQuery-File-Upload) -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-file-upload/9.20.0/js/jquery.fileupload.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/blueimp-file-upload/10.2.0/js/jquery.fileupload.min.js"></script>
 
         <script>
             $(document).ready(function () {

@@ -1,5 +1,5 @@
 {
     "require": {
-        "eddturtle/direct-upload": "dev-master"
+        "eddturtle/direct-upload": "~2.0"
     }
 }
